@@ -1,0 +1,32 @@
+T6D40 4638:867 SEGGER J-Link V6.46 Log File (0002ms, 179102ms total)
+T6D40 4638:867 DLL Compiled: May 23 2019 17:49:56 (0002ms, 179102ms total)
+T6D40 4638:867 Logging started @ 2022-08-16 15:19 (0002ms, 179102ms total)
+T6D40 4638:869 JLINK_SetWarnOutHandler(...) (0000ms, 179102ms total)
+T6D40 4638:869 JLINK_OpenEx(...)
+Firmware: J-Link V9 compiled Jun  2 2222 22:22:22
+Hardware: V9.40
+S/N: 59401308
+Feature(s): GDB, RDI, FlashBP, FlashDL, JFlash, RDDI
+TELNET listener socket opened on port 19021WEBSRV 
+Starting webserver (0032ms, 179134ms total)
+T6D40 4638:869 WEBSRV Webserver running on local port 19080 (0032ms, 179134ms total)
+T6D40 4638:869   returns O.K. (0032ms, 179134ms total)
+T6D40 4638:901 JLINK_GetEmuCaps()  returns 0xB9FF7BBF (0000ms, 179134ms total)
+T6D40 4638:901 JLINK_TIF_GetAvailable(...) (0001ms, 179135ms total)
+T6D40 4638:902 JLINK_SetErrorOutHandler(...) (0000ms, 179135ms total)
+T6D40 4638:902 JLINK_ExecCommand("ProjectFile = "E:\Projects\EIS_Master_GD32_V00.02\USER\JLinkSettings.ini"", ...).   returns 0x00 (0007ms, 179142ms total)
+T6D40 4638:909 JLINK_ExecCommand("Device = GD32F103C8", ...). Device "GD32F103C8" selected.  returns 0x00 (0006ms, 179148ms total)
+T6D40 4638:915 JLINK_ExecCommand("DisableConnectionTimeout", ...).   returns 0x01 (0000ms, 179148ms total)
+T6D40 4638:915 JLINK_GetHardwareVersion()  returns 0x16F30 (0000ms, 179148ms total)
+T6D40 4638:915 JLINK_GetDLLVersion()  returns 64600 (0000ms, 179148ms total)
+T6D40 4638:915 JLINK_GetFirmwareString(...) (0000ms, 179148ms total)
+T6D40 4638:915 JLINK_GetDLLVersion()  returns 64600 (0000ms, 179148ms total)
+T6D40 4638:915 JLINK_GetCompileDateTime() (0000ms, 179148ms total)
+T6D40 4638:915 JLINK_GetFirmwareString(...) (0000ms, 179148ms total)
+T6D40 4638:915 JLINK_GetHardwareVersion()  returns 0x16F30 (0001ms, 179149ms total)
+T6D40 4638:916 JLINK_TIF_Select(JLINKARM_TIF_SWD)  returns 0x00 (0002ms, 179151ms total)
+T6D40 4638:918 JLINK_SetSpeed(1000) (0000ms, 179151ms total)
+T6D40 4638:918 JLINK_GetId() >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF> >0x10B TIF> >0x10F TIF>  returns 0x00000000 (0289ms, 179440ms total)
+T6D40 4640:971 JLINK_Close() (0012ms, 179452ms total)
+T6D40 4640:971  (0012ms, 179452ms total)
+T6D40 4640:971 Closed (0012ms, 179452ms total)
