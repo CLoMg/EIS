@@ -3,6 +3,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include "msg_handler.h"
+#include "gd32f10x_fmc.h"
 
 #define FW_VERSION 0x0001
 FSM_T *IAP_FSM = NULL;
@@ -17,6 +18,7 @@ typedef enum
 {
 	No_Event = 0x00, Init_Event , FW_Upload_Event, FW_Acq_Event,
 	RX_Sucess_Event,RX_Error_Event,RX_Timeout_Event, FW_Acq_Finish_Event,
+	Acq_Failed_Event,
 }IAP_Events_T;
 
 
@@ -26,6 +28,7 @@ static StateTransform_T trans_table[] =
 	{UnInit_State,Init_Event,Idle_State,IAP_Init_Func},
 	{Idle_State,FW_Upload_Event,FW_Acq_State,IAP_Calc_Func},
 	{FW_Acq_State,FW_Acq_Event,Wait_Reply_State,FW_Acq_Func},
+	{FW_Acq_State,Acq_Failed_Event,Idle_State,IAP_Failed_Log_Func},
 	{FW_Acq_State,FW_Acq_Finish_Event,Idle_State,App_Jump_Func},
 	{Wait_Reply_State,RX_Timeout_Event,FW_Acq_State,FW_ReAcq_Func},
 	{Wait_Reply_State,No_Event,Wait_Reply_State,Timeout_Count_Func},
@@ -34,11 +37,16 @@ static StateTransform_T trans_table[] =
 
 IAP_Info_Struct_T *IAP_Info_Struct = NULL;
 void IAP_Calc_Func(void){
+	uint8_t fw_version_cur = (uint8_t)(*(__IO uint32_t *)(FW_VERSION_CUR));
 	/*版本对比，下发版本号，高于当前版本，则启动升级*/
+	if(IAP_Info_Struct->fw_version)
+	/*查询当前固件是否断点续传的*/
 	
 	/*固件请求包数计算*/
 	
 	/*当前包数初始化*/
+	
+	event = FW_Acq_Event;
 }
 
 void IAP_Init_Func(void){
@@ -72,23 +80,21 @@ void IAP_FSM_Init(void)
 
 
 void FW_Acq_Func(void){
-	Internal_MSG_T *IAP_TX_MSG = (Internal_MSG_T *)malloc(sizeof(Internal_MSG_T));
+	xData *tx_msg = (xData *)pvPortMalloc(sizeof(xData));
+	uint8_t *data = (uint8_t *)pvPortMalloc(sizeof(uint8_t)*4);
+	tx_msg->iEventType = LORATxEvent;
+	tx_msg->iMeaning = FW_Acquire;
+	tx_msg->len = 4;
+	data[0] = ITEM_NUM;
+	data[1] = IAP_Info_Struct->fw_version;
+	data[2] = (uint8_t)(IAP_Info_Struct->fw_pack_cur>>8);
+	data[3] = (uint8_t)IAP_Info_Struct->fw_pack_cur;
+	tx_msg->iValue = data;
+	tx_msg->sn = 0x00;
 	
-	IAP_TX_MSG->data_addr = (unsigned char*)malloc(5*sizeof(unsigned char));
-	IAP_TX_MSG->func_code = FW_Acquire;
-	IAP_TX_MSG->id = Lora;
-	IAP_TX_MSG->len = 0x05;
-	IAP_TX_MSG->data_addr[0] = 0x00;
-	IAP_TX_MSG->data_addr[1] = IAP_Info_Struct->fw_version;
-	IAP_TX_MSG->data_addr[2] = 0x00;
-	IAP_TX_MSG->data_addr[3] = IAP_Info_Struct->fw_pack_cur;
-	IAP_TX_MSG->data_addr[4] = IAP_Info_Struct->fw_pack_size_single;
-	
-	Internal_MSG_T * q =  Int_Msg_Head;
-	while(q->next != NULL)
-				q = q->next;
-	q->next = IAP_TX_MSG;
-	
+	xQueueSend(MSGTR_Queue,tx_msg,500/portTICK_RATE_MS);
+	 /*需要释放内存吗？？？？*/
+	event  = No_Event;
 }
 void Timeout_Count_Func(void){
 	static uint8_t wait_count = 0;
@@ -100,12 +106,31 @@ void Timeout_Count_Func(void){
 	
 }
 void App_Jump_Func(void){}
-void FW_ReAcq_Func(void){}
+void FW_ReAcq_Func(void){
+	static uint8_t retry_count = 0;
+	
+	retry_count++;
+	if(retry_count > 5){
+		retry_count = 0;
+		event = Acq_Failed_Event;
+	}
+	else
+		event = FW_Acq_Event;
+}
+/*固件获取失败时，记录信息至flash，便于下次断点续传*/
+void IAP_Failed_Log_Func(void){
+/*升级失败固件版本号*/
+	
+/*下次开始包序号*/
+	
+/*下次待写入首地址*/
+	
+}
 void FW_RX_Handler_Func(void){
 	
+	IAP_Info_Struct->fw_pack_cur++;
+	IAP_Info_Struct->fw_addr += IAP_Info_Struct->fw_pack_size_cur;
 	
-
-
 }
 	
 void IAP_MSG_Handler(void *msg){
@@ -117,6 +142,9 @@ void IAP_MSG_Handler(void *msg){
 			case FW_Acquire:
 				if(((uint16_t)p->iValue[0]<<8 | p->iValue[1] ) == IAP_Info_Struct->fw_pack_cur){
 					/*写入flash*/
+					uint8_t wlen=0;
+					wlen = ((p->len-2)%4 == 0)? (p->len-2)/4 : (p->len-2)/4 + 1;
+					fmc_word_write((uint32_t )IAP_Info_Struct->fw_addr , wlen , (uint32_t *)&(p->iValue[2]));
 					event = RX_Sucess_Event;
 				}
 				else

@@ -17,10 +17,10 @@
 //#include "stmflash.h"
 #define MSG_MIN_LEN 21
 #define UNIQUE_ID_ADDR 0x1FFFF7E8
-#define LORA_PARA_ADDR 0x0800FC00
+
 #define HEAD 0x4A54
 #define ENCRY_MODE 0x00
-#define ITEM_NUM 0x0F
+
 #define LORA_USART 0                                                                                                                                                                                                                                         
 #if LORA_USART
 	#define LORA_RX_BUFF  rx1_data_buff

@@ -4,7 +4,7 @@
 #include "freertos.h"
 #include "semphr.h"
 #define VIP_MSG_MAX 0x1000
-
+#define ITEM_NUM 0x0F
 extern SemaphoreHandle_t xStateMutex;
 extern unsigned char Sensor_Buff[20];
 	

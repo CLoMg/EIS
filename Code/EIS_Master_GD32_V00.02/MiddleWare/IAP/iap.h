@@ -18,6 +18,7 @@ void IAP_FSM_Init(void);
 void FW_Acq_Func(void);
 void App_Jump_Func(void);
 void FW_ReAcq_Func(void);
+void IAP_Failed_Log_Func(void);
 void Timeout_Count_Func(void);
 void FW_RX_Handler_Func(void);
 void IAP_MSG_Handler(void *msg);

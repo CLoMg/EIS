@@ -43,6 +43,29 @@ OF SUCH DAMAGE.
 /*FMC Page Address definition*/
 #define FMC_START_PR_ADDR 0x08000000
 
+/*User Parameter Address definition*/
+#define USER_PARAM_ADDR_BASE ((uint32_t)0x08009000)
+
+/*Lora Parameter Address definition*/
+#define LORA_PARA_ADDR (USER_PARAM_ADDR_BASE + 0x00)
+#define LORA_PARA_SIZE ((uint32_t)0x08)
+
+/*IAP Infomation Data Address definition*/
+#define FW_VERSION_CUR (USER_PARAM_ADDR_BASE + 0x0C)
+#define FW_VERSION_TO_UPGRADE (USER_PARAM_ADDR_BASE + 0x10)
+#define FW_RECIEVED_AMOUNT (USER_PARAM_ADDR_BASE + 0x14)
+#define NEW_FW_VERSION_FLAG (USER_PARAM_ADDR_BASE + 0x18)
+
+/*Firmware Partition Address definition*/
+#define BOOT_START_ADDR ((uint32_t)0x08000000)
+#define BOOT_CODE_SIZE ((uint32_t)0x0400)
+
+#define APP_START_ADDR (BOOT_START_ADDR+BOOT_CODE_SIZE)
+#define APP_CODE_SIZE  ((uint32_t)0x4400)
+
+#define BAK_AREA_START_ADDR  (APP_START_ADDR+APP_CODE_SIZE)
+#define BAK_AREA_SIZE ((uint32_t)0x4400)
+
 /* FMC and option byte definition */
 #define FMC                        FMC_BASE                       /*!< FMC register base address */
 #define OB                         OB_BASE                        /*!< option bytes base address */
