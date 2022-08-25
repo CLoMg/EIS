@@ -18,7 +18,7 @@ typedef enum
 {
 	No_Event = 0x00, Init_Event , FW_Upload_Event, FW_Acq_Event,
 	RX_Sucess_Event,RX_Error_Event,RX_Timeout_Event, FW_Acq_Finish_Event,
-	Acq_Failed_Event,
+	Acq_Failed_Event,FW_Version_Invalid_Event,
 }IAP_Events_T;
 
 
@@ -29,6 +29,7 @@ static StateTransform_T trans_table[] =
 	{Idle_State,FW_Upload_Event,FW_Acq_State,IAP_Calc_Func},
 	{FW_Acq_State,FW_Acq_Event,Wait_Reply_State,FW_Acq_Func},
 	{FW_Acq_State,Acq_Failed_Event,Idle_State,IAP_Failed_Log_Func},
+	{FW_Acq_State,FW_Version_Invalid_Event,Idle_State,IAP_Failed_Log_Func},
 	{FW_Acq_State,FW_Acq_Finish_Event,Idle_State,App_Jump_Func},
 	{Wait_Reply_State,RX_Timeout_Event,FW_Acq_State,FW_ReAcq_Func},
 	{Wait_Reply_State,No_Event,Wait_Reply_State,Timeout_Count_Func},
@@ -38,15 +39,37 @@ static StateTransform_T trans_table[] =
 IAP_Info_Struct_T *IAP_Info_Struct = NULL;
 void IAP_Calc_Func(void){
 	uint8_t fw_version_cur = (uint8_t)(*(__IO uint32_t *)(FW_VERSION_CUR));
+	
+	xData *tx_msg = (xData *)pvPortMalloc(sizeof(xData));
+	uint8_t *data = (uint8_t *)pvPortMalloc(sizeof(uint8_t)*1);
+	tx_msg->iEventType = LORATxEvent;
+	tx_msg->iMeaning = FW_Update;
+	tx_msg->len = 1;
+	tx_msg->iValue = data;
+	tx_msg->sn = 0x00;
+	 /*需要释放内存吗？？？？*/
 	/*版本对比，下发版本号，高于当前版本，则启动升级*/
-	if(IAP_Info_Struct->fw_version)
-	/*查询当前固件是否断点续传的*/
-	
-	/*固件请求包数计算*/
-	
-	/*当前包数初始化*/
-	
-	event = FW_Acq_Event;
+	if(IAP_Info_Struct->fw_version != fw_version_cur){
+			uint8_t fw_version_unfinished = (uint8_t)(*(__IO uint32_t *)(FW_VERSION_UNFINISHED));
+		/*对比当前固件是否断点续传的*/
+		if(IAP_Info_Struct->fw_version == fw_version_unfinished){
+			/*当前包数初始化*/
+			IAP_Info_Struct->fw_pack_cur = (*(__IO uint32_t *)(FW_RECIEVED_AMOUNT));
+		}
+		else
+			/*当前包数初始化*/
+			IAP_Info_Struct->fw_pack_cur = 0;
+		/*re_code = 0x01 有效固件版本 */
+		*tx_msg->iValue = 0x01;
+		event = FW_Acq_Event;
+	}
+	/*下发固件版本号与当前版本相同，则不升级*/
+	else{
+		/*re_code = 0x02 新固件版本与当前固件版本相同*/
+		*tx_msg->iValue = 0x02;
+		event = FW_Version_Invalid_Event;
+	}
+	xQueueSend(MSGTR_Queue,tx_msg,500/portTICK_RATE_MS);
 }
 
 void IAP_Init_Func(void){
@@ -78,7 +101,6 @@ void IAP_FSM_Init(void)
 	event = Init_Event;
 }
 
-
 void FW_Acq_Func(void){
 	xData *tx_msg = (xData *)pvPortMalloc(sizeof(xData));
 	uint8_t *data = (uint8_t *)pvPortMalloc(sizeof(uint8_t)*4);
@@ -105,7 +127,12 @@ void Timeout_Count_Func(void){
 	}
 	
 }
-void App_Jump_Func(void){}
+/*直接通过系统复位，运行bootloader*/
+void App_Jump_Func(void){
+	__disable_irq();
+	__set_FAULTMASK(1);
+	NVIC_SystemReset();
+}
 void FW_ReAcq_Func(void){
 	static uint8_t retry_count = 0;
 	
@@ -119,32 +146,49 @@ void FW_ReAcq_Func(void){
 }
 /*固件获取失败时，记录信息至flash，便于下次断点续传*/
 void IAP_Failed_Log_Func(void){
-/*升级失败固件版本号*/
+	/*升级失败固件版本号*/
+		
+	/*下次开始包序号*/
 	
-/*下次开始包序号*/
-	
-/*下次待写入首地址*/
+	/*下次待写入首地址*/
 	
 }
 void FW_RX_Handler_Func(void){
 	
 	IAP_Info_Struct->fw_pack_cur++;
 	IAP_Info_Struct->fw_addr += IAP_Info_Struct->fw_pack_size_cur;
+	/*待获取固件包序号 > 总的包序号 ，固件包接收完毕，准备调整至BootLoader程序进行固件校验和升级*/
+	if(IAP_Info_Struct->fw_pack_cur > IAP_Info_Struct->fw_pack_total){
+		
+		event = FW_Acq_Finish_Event; //接收完成事件
+		uint32_t data = 0x01; 
+		fmc_word_write(NEW_FW_VERSION_FLAG,1,&data);
+		fmc_word_write(NEW_FW_SIZE,1,(uint32_t *)IAP_Info_Struct->fw_addr);
+		fmc_word_write(NEW_FW_CHECKSUM, 4, (uint32_t *)IAP_Info_Struct->fw_check_sum);
 	
+	}
+	else
+		event  = FW_Acq_Event;
 }
 	
 void IAP_MSG_Handler(void *msg){
 		xData *p = (xData *)msg;
 		switch(p->iMeaning){
-			case FW_Update:
+			case FW_Update:{
+				IAP_Info_Struct->fw_version = p->iValue[0];
+				uint32_t fw_size =  ((uint32_t)p->iValue[1]<<24)|((uint32_t)p->iValue[2]<<16)|((uint16_t)p->iValue[3]<<8)|(p->iValue[4]);
+				IAP_Info_Struct->fw_pack_total = (fw_size % 200 == 0)? (fw_size / 200 ):( fw_size / 200 + 1);
+				memcpy(IAP_Info_Struct->fw_check_sum,&p->iValue[6],16);
 				event = FW_Upload_Event;
+			}
 				break;
 			case FW_Acquire:
 				if(((uint16_t)p->iValue[0]<<8 | p->iValue[1] ) == IAP_Info_Struct->fw_pack_cur){
 					/*写入flash*/
 					uint8_t wlen=0;
 					wlen = ((p->len-2)%4 == 0)? (p->len-2)/4 : (p->len-2)/4 + 1;
-					fmc_word_write((uint32_t )IAP_Info_Struct->fw_addr , wlen , (uint32_t *)&(p->iValue[2]));
+					fmc_word_write((uint32_t )IAP_Info_Struct->fw_addr, wlen, (uint32_t *)&(p->iValue[2]));
+					IAP_Info_Struct->fw_pack_size_cur = wlen;
 					event = RX_Sucess_Event;
 				}
 				else

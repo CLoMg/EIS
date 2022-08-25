@@ -7,7 +7,8 @@ typedef struct IAP_Info_Struct{
 	unsigned short fw_pack_cur;
 	unsigned short fw_pack_size_cur;
 	unsigned char  fw_pack_size_single;
-	unsigned char  *fw_addr;
+	unsigned int  *fw_addr;
+	unsigned char fw_check_sum[16];
 }IAP_Info_Struct_T;
 
 void IAP_Calc_Func(void);
