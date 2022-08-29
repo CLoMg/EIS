@@ -41,6 +41,7 @@ OF SUCH DAMAGE.
 #include "main.h"
 #include "gd32f10x_eval.h"
 #include "iap_bootloader.h"
+#include "hal_ota.h"
 
 
 /*!
@@ -81,13 +82,22 @@ int main(void)
     /* initilize the LEDs, USART and key */
     gd_eval_led_init(LED0); 
     gd_eval_led_init(LED1); 
-		uint8_t new_fw_flag = (uint8_t)(*(__IO uint32_t *)(NEW_FW_VERSION_FLAG));;
+		uint8_t new_fw_flag = (uint8_t)(*(__IO uint32_t *)(NEW_FW_VERSION_FLAG));
 		/*查看flag，看是否有新的固件？若有，继续后续操作；否则直接跳转至application 代码区*/
 		if(new_fw_flag == 1){
 			/*校验固件完整性 ,此处使用MD5校验，如果校验成功，则将固件从后备区搬运到APP 区*/
-			
+			uint32_t image_size = (*(__IO uint32_t *)(NEW_FW_SIZE));
+			if(1==OTA_image_verify(image_size))
+			{
+				/*搬运固件*/
+				
+			}
 			/*若固件校验未通过，则擦除Image文件*/
+			 else
+			{
+				
 			 
+			}
 		}
 		
 		iap_load_app(APP_START_ADDR);

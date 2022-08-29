@@ -19,3 +19,4 @@ void iap_load_app(uint32_t  app_addr){
 		jump2app();
 	}
 }
+

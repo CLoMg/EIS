@@ -682,6 +682,22 @@ Section Cross References
     gd32f10x_eval.o(.text.gd_eval_com_init) refers to gd32f10x_usart.o(.text.usart_transmit_config) for usart_transmit_config
     gd32f10x_eval.o(.text.gd_eval_com_init) refers to gd32f10x_usart.o(.text.usart_enable) for usart_enable
     gd32f10x_eval.o(.ARM.exidx.text.gd_eval_com_init) refers to gd32f10x_eval.o(.text.gd_eval_com_init) for [Anonymous Symbol]
+    hal_ota.o(.text.OTA_image_verify) refers to hal_ota.o(.text.Flash_Read_To_Bytes) for Flash_Read_To_Bytes
+    hal_ota.o(.text.OTA_image_verify) refers to malloc.o(i.malloc) for malloc
+    hal_ota.o(.text.OTA_image_verify) refers to hal_ota.o(.text.to_bytes) for to_bytes
+    hal_ota.o(.text.OTA_image_verify) refers to systick.o(.text.delay_1ms) for delay_1ms
+    hal_ota.o(.text.OTA_image_verify) refers to memseta.o(.text) for __aeabi_memclr4
+    hal_ota.o(.text.OTA_image_verify) refers to hal_ota.o(.text.to_int32) for to_int32
+    hal_ota.o(.text.OTA_image_verify) refers to memcpya.o(.text) for __aeabi_memcpy
+    hal_ota.o(.text.OTA_image_verify) refers to malloc.o(i.free) for free
+    hal_ota.o(.text.OTA_image_verify) refers to memcmp.o(.text) for memcmp
+    hal_ota.o(.text.OTA_image_verify) refers to hal_ota.o(.bss.CRC32BUG) for CRC32BUG
+    hal_ota.o(.text.OTA_image_verify) refers to hal_ota.o(.rodata.k) for k
+    hal_ota.o(.text.OTA_image_verify) refers to hal_ota.o(.rodata.r) for r
+    hal_ota.o(.ARM.exidx.text.OTA_image_verify) refers to hal_ota.o(.text.OTA_image_verify) for [Anonymous Symbol]
+    hal_ota.o(.ARM.exidx.text.Flash_Read_To_Bytes) refers to hal_ota.o(.text.Flash_Read_To_Bytes) for [Anonymous Symbol]
+    hal_ota.o(.ARM.exidx.text.to_bytes) refers to hal_ota.o(.text.to_bytes) for [Anonymous Symbol]
+    hal_ota.o(.ARM.exidx.text.to_int32) refers to hal_ota.o(.text.to_int32) for [Anonymous Symbol]
     entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry10a.o(.ARM.Collect$$$$0000000D) for __rt_final_cpp
     entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry11a.o(.ARM.Collect$$$$0000000F) for __rt_final_exit
     entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry7b.o(.ARM.Collect$$$$00000008) for _main_clock
@@ -689,6 +705,38 @@ Section Cross References
     entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry9a.o(.ARM.Collect$$$$0000000B) for _main_init
     entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry5.o(.ARM.Collect$$$$00000004) for _main_scatterload
     entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry2.o(.ARM.Collect$$$$00000001) for _main_stk
+    malloc.o(i.free) refers to mvars.o(.data) for __microlib_freelist
+    malloc.o(i.malloc) refers to mvars.o(.data) for __microlib_freelist_initialised
+    malloc.o(i.malloc) refers to mvars.o(.data) for __microlib_freelist
+    malloc.o(i.malloc) refers to startup_gd32f10x_md.o(HEAP) for __heap_base
+    mallocr.o(i.__free$realloc) refers to mvars.o(.data) for __microlib_freelist
+    mallocr.o(i.__malloc$realloc) refers to mallocr.o(i.internal_alloc) for internal_alloc
+    mallocr.o(i.__malloc$realloc) refers to mvars.o(.data) for __microlib_freelist_initialised
+    mallocr.o(i.__malloc$realloc) refers to startup_gd32f10x_md.o(HEAP) for __heap_base
+    mallocr.o(i.__malloc$realloc) refers to mvars.o(.data) for __microlib_freelist
+    mallocr.o(i.internal_alloc) refers to memcpya.o(.text) for __aeabi_memcpy
+    mallocr.o(i.internal_alloc) refers to mvars.o(.data) for __microlib_freelist
+    mallocr.o(i.realloc) refers to mallocr.o(i.__free$realloc) for __free$realloc
+    mallocr.o(i.realloc) refers to mallocr.o(i.internal_alloc) for internal_alloc
+    mallocr.o(i.realloc) refers to mallocr.o(i.__malloc$realloc) for __malloc$realloc
+    mallocr.o(i.realloc) refers to mvars.o(.data) for __microlib_freelist
+    malloca.o(i.__aligned_malloc) refers to mvars.o(.data) for __microlib_freelist_initialised
+    malloca.o(i.__aligned_malloc) refers to mvars.o(.data) for __microlib_freelist
+    malloca.o(i.__aligned_malloc) refers to startup_gd32f10x_md.o(HEAP) for __heap_base
+    malloca.o(i.__free$memalign) refers to mvars.o(.data) for __microlib_freelist
+    malloca.o(i.__malloc$memalign) refers to malloca.o(i.__aligned_malloc) for __aligned_malloc
+    mallocra.o(i.__aligned_malloc$realloc) refers to mallocra.o(i.internal_alloc) for internal_alloc
+    mallocra.o(i.__aligned_malloc$realloc) refers to mvars.o(.data) for __microlib_freelist_initialised
+    mallocra.o(i.__aligned_malloc$realloc) refers to startup_gd32f10x_md.o(HEAP) for __heap_base
+    mallocra.o(i.__aligned_malloc$realloc) refers to mvars.o(.data) for __microlib_freelist
+    mallocra.o(i.__free$realloc$memalign) refers to mvars.o(.data) for __microlib_freelist
+    mallocra.o(i.__malloc$realloc$memalign) refers to mallocra.o(i.__aligned_malloc$realloc) for __aligned_malloc$realloc
+    mallocra.o(i.__realloc$memalign) refers to mallocra.o(i.__free$realloc$memalign) for __free$realloc$memalign
+    mallocra.o(i.__realloc$memalign) refers to mallocra.o(i.internal_alloc) for internal_alloc
+    mallocra.o(i.__realloc$memalign) refers to mallocra.o(i.__malloc$realloc$memalign) for __malloc$realloc$memalign
+    mallocra.o(i.__realloc$memalign) refers to mvars.o(.data) for __microlib_freelist
+    mallocra.o(i.internal_alloc) refers to memcpya.o(.text) for __aeabi_memcpy
+    mallocra.o(i.internal_alloc) refers to mvars.o(.data) for __microlib_freelist
     entry2.o(.ARM.Collect$$$$00000001) refers to entry2.o(.ARM.Collect$$$$00002712) for __lit__00000000
     entry2.o(.ARM.Collect$$$$00002712) refers to startup_gd32f10x_md.o(STACK) for __initial_sp
     entry2.o(__vectab_stack_and_reset_area) refers to startup_gd32f10x_md.o(STACK) for __initial_sp
@@ -1838,8 +1886,20 @@ Removing Unused input sections from the image.
     Removing gd32f10x_eval.o(.rodata.KEY_CLK), (6 bytes).
     Removing gd32f10x_eval.o(.rodata.KEY_PORT), (12 bytes).
     Removing gd32f10x_eval.o(.rodata.KEY_EXTI_LINE), (12 bytes).
+    Removing hal_ota.o(.text), (0 bytes).
+    Removing hal_ota.o(.text.OTA_image_verify), (716 bytes).
+    Removing hal_ota.o(.ARM.exidx.text.OTA_image_verify), (8 bytes).
+    Removing hal_ota.o(.text.Flash_Read_To_Bytes), (46 bytes).
+    Removing hal_ota.o(.ARM.exidx.text.Flash_Read_To_Bytes), (8 bytes).
+    Removing hal_ota.o(.text.to_bytes), (16 bytes).
+    Removing hal_ota.o(.ARM.exidx.text.to_bytes), (8 bytes).
+    Removing hal_ota.o(.text.to_int32), (4 bytes).
+    Removing hal_ota.o(.ARM.exidx.text.to_int32), (8 bytes).
+    Removing hal_ota.o(.rodata.r), (256 bytes).
+    Removing hal_ota.o(.rodata.k), (256 bytes).
+    Removing hal_ota.o(.bss.CRC32BUG), (4 bytes).
 
-1135 unused section(s) (total 23264 bytes) removed from the image.
+1147 unused section(s) (total 24594 bytes) removed from the image.
 
 ==============================================================================
 
@@ -1862,6 +1922,14 @@ Image Symbol Table
     ../clib/microlib/init/entry.s            0x00000000   Number         0  entry10b.o ABSOLUTE
     ../clib/microlib/init/entry.s            0x00000000   Number         0  entry11a.o ABSOLUTE
     ../clib/microlib/init/entry.s            0x00000000   Number         0  entry11b.o ABSOLUTE
+    ../clib/microlib/malloc/malloc.c         0x00000000   Number         0  malloc.o ABSOLUTE
+    ../clib/microlib/malloc/malloc.c         0x00000000   Number         0  mallocr.o ABSOLUTE
+    ../clib/microlib/malloc/malloc.c         0x00000000   Number         0  malloca.o ABSOLUTE
+    ../clib/microlib/malloc/malloc.c         0x00000000   Number         0  mallocra.o ABSOLUTE
+    ../clib/microlib/malloc/mvars.c          0x00000000   Number         0  mvars.o ABSOLUTE
+    ../clib/microlib/string/memcmp.c         0x00000000   Number         0  memcmp.o ABSOLUTE
+    ../clib/microlib/string/memcpy.c         0x00000000   Number         0  memcpya.o ABSOLUTE
+    ../clib/microlib/string/memcpy.c         0x00000000   Number         0  memcpyb.o ABSOLUTE
     ../clib/microlib/string/memset.c         0x00000000   Number         0  memseta.o ABSOLUTE
     ..\..\Firmware\CMSIS\GD\GD32F10x\Source\ARM\startup_gd32f10x_md.s 0x00000000   Number         0  startup_gd32f10x_md.o ABSOLUTE
     dc.s                                     0x00000000   Number         0  dc.o ABSOLUTE
@@ -1890,6 +1958,7 @@ Image Symbol Table
     gd32f10x_timer.c                         0x00000000   Number         0  gd32f10x_timer.o ABSOLUTE
     gd32f10x_usart.c                         0x00000000   Number         0  gd32f10x_usart.o ABSOLUTE
     gd32f10x_wwdgt.c                         0x00000000   Number         0  gd32f10x_wwdgt.o ABSOLUTE
+    hal_ota.c                                0x00000000   Number         0  hal_ota.o ABSOLUTE
     handlers.s                               0x00000000   Number         0  handlers.o ABSOLUTE
     iap_bootloader.c                         0x00000000   Number         0  iap_bootloader.o ABSOLUTE
     init.s                                   0x00000000   Number         0  init.o ABSOLUTE
@@ -2074,17 +2143,17 @@ Memory Map of the image
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
     0x08000000   0x08000000   0x00000104   Data   RO         1359    RESET               startup_gd32f10x_md.o
-    0x08000104   0x08000104   0x00000000   Code   RO         1393  * .ARM.Collect$$$$00000000  mc_w.l(entry.o)
-    0x08000104   0x08000104   0x00000004   Code   RO         1398    .ARM.Collect$$$$00000001  mc_w.l(entry2.o)
-    0x08000108   0x08000108   0x00000004   Code   RO         1401    .ARM.Collect$$$$00000004  mc_w.l(entry5.o)
-    0x0800010c   0x0800010c   0x00000000   Code   RO         1403    .ARM.Collect$$$$00000008  mc_w.l(entry7b.o)
-    0x0800010c   0x0800010c   0x00000000   Code   RO         1405    .ARM.Collect$$$$0000000A  mc_w.l(entry8b.o)
-    0x0800010c   0x0800010c   0x00000008   Code   RO         1406    .ARM.Collect$$$$0000000B  mc_w.l(entry9a.o)
-    0x08000114   0x08000114   0x00000000   Code   RO         1408    .ARM.Collect$$$$0000000D  mc_w.l(entry10a.o)
-    0x08000114   0x08000114   0x00000000   Code   RO         1410    .ARM.Collect$$$$0000000F  mc_w.l(entry11a.o)
-    0x08000114   0x08000114   0x00000004   Code   RO         1399    .ARM.Collect$$$$00002712  mc_w.l(entry2.o)
+    0x08000104   0x08000104   0x00000000   Code   RO         1413  * .ARM.Collect$$$$00000000  mc_w.l(entry.o)
+    0x08000104   0x08000104   0x00000004   Code   RO         1452    .ARM.Collect$$$$00000001  mc_w.l(entry2.o)
+    0x08000108   0x08000108   0x00000004   Code   RO         1455    .ARM.Collect$$$$00000004  mc_w.l(entry5.o)
+    0x0800010c   0x0800010c   0x00000000   Code   RO         1457    .ARM.Collect$$$$00000008  mc_w.l(entry7b.o)
+    0x0800010c   0x0800010c   0x00000000   Code   RO         1459    .ARM.Collect$$$$0000000A  mc_w.l(entry8b.o)
+    0x0800010c   0x0800010c   0x00000008   Code   RO         1460    .ARM.Collect$$$$0000000B  mc_w.l(entry9a.o)
+    0x08000114   0x08000114   0x00000000   Code   RO         1462    .ARM.Collect$$$$0000000D  mc_w.l(entry10a.o)
+    0x08000114   0x08000114   0x00000000   Code   RO         1464    .ARM.Collect$$$$0000000F  mc_w.l(entry11a.o)
+    0x08000114   0x08000114   0x00000004   Code   RO         1453    .ARM.Collect$$$$00002712  mc_w.l(entry2.o)
     0x08000118   0x08000118   0x00000024   Code   RO         1360    .text               startup_gd32f10x_md.o
-    0x0800013c   0x0800013c   0x00000024   Code   RO         1412    .text               mc_w.l(init.o)
+    0x0800013c   0x0800013c   0x00000024   Code   RO         1468    .text               mc_w.l(init.o)
     0x08000160   0x08000160   0x00000002   Code   RO            8    .text.BusFault_Handler  gd32f10x_it.o
     0x08000162   0x08000162   0x00000002   Code   RO           14    .text.DebugMon_Handler  gd32f10x_it.o
     0x08000164   0x08000164   0x00000002   Code   RO            4    .text.HardFault_Handler  gd32f10x_it.o
@@ -2107,12 +2176,12 @@ Memory Map of the image
     0x0800041c   0x0800041c   0x00000018   Code   RO          751    .text.nvic_vector_table_set  gd32f10x_misc.o
     0x08000434   0x08000434   0x0000001c   Code   RO          806    .text.rcu_periph_clock_enable  gd32f10x_rcu.o
     0x08000450   0x08000450   0x00000038   Code   RO           45    .text.systick_config  systick.o
-    0x08000488   0x08000488   0x0000000e   Code   RO         1416    i.__scatterload_copy  mc_w.l(handlers.o)
-    0x08000496   0x08000496   0x00000002   Code   RO         1417    i.__scatterload_null  mc_w.l(handlers.o)
-    0x08000498   0x08000498   0x0000000e   Code   RO         1418    i.__scatterload_zeroinit  mc_w.l(handlers.o)
+    0x08000488   0x08000488   0x0000000e   Code   RO         1472    i.__scatterload_copy  mc_w.l(handlers.o)
+    0x08000496   0x08000496   0x00000002   Code   RO         1473    i.__scatterload_null  mc_w.l(handlers.o)
+    0x08000498   0x08000498   0x0000000e   Code   RO         1474    i.__scatterload_zeroinit  mc_w.l(handlers.o)
     0x080004a6   0x080004a6   0x00000002   PAD
     0x080004a8   0x080004a8   0x00000020   Data   RO         1381    .rodata.cst16       gd32f10x_eval.o
-    0x080004c8   0x080004c8   0x00000020   Data   RO         1415    Region$$Table       anon$$obj.o
+    0x080004c8   0x080004c8   0x00000020   Data   RO         1471    Region$$Table       anon$$obj.o
 
 
     Execution Region RW_IRAM1 (Exec base: 0x20000000, Load base: 0x080004e8, Size: 0x00000418, Max: 0x00005000, ABSOLUTE)
@@ -2141,13 +2210,13 @@ Image component sizes
         24          8          0          0          0       3321   gd32f10x_misc.o
         28          4          0          0          0      11132   gd32f10x_rcu.o
         40          8          0          0          4        858   iap_bootloader.o
-        88         12          0          0          4       1791   main.o
+        88         12          0          0          4       1793   main.o
         36          8        260          0       1024        860   startup_gd32f10x_md.o
        256         16          0          4          0       1741   system_gd32f10x.o
         76         16          0          0          4       3548   systick.o
 
     ----------------------------------------------------------------------
-       844         88        324          4       1044      33654   Object Totals
+       844         88        324          4       1044      33656   Object Totals
          0          0         32          0          0          0   (incl. Generated)
          2          0          0          0          8          0   (incl. Padding)
 
@@ -2186,8 +2255,8 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
 
-       932        104        324          4       1044      33746   Grand Totals
-       932        104        324          4       1044      33746   ELF Image Totals
+       932        104        324          4       1044      33748   Grand Totals
+       932        104        324          4       1044      33748   ELF Image Totals
        932        104        324          4          0          0   ROM Totals
 
 ==============================================================================
