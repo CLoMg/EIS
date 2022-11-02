@@ -1,0 +1,50 @@
+
+DEVICE=GD32F10X
+
+SRCS=$(wildcard USER/*.c)
+LIBS=$(wildcard CORE\GD\GD32F10x\Source\*.c  FWLIB\Source\*.c HAL\src\*.c \
+HARDWARE\Battery\*.c HARDWARE\DSL_08\*.c HARDWARE\SCD4x\*.c MiddleWare\BlueTooth\*.c \
+MiddleWare\Direction\*.c MiddleWare\FSM\*.c MiddleWare\Gas\*.c MiddleWare\IAP\*.c \
+MiddleWare\LED\*.c MiddleWare\LORA_Module\*.c MiddleWare\Msg_Handler\*.c MiddleWare\Sensirion\*.c \
+MiddleWare\Slave\*.c MiddleWare\SPI\*.c MiddleWare\Temperature\temp.c \
+MiddleWare\Third_Part\Board\gd32f10x_eval.c MiddleWare\Third_Part\FreeRTOS\portable\ARM_CM3\port.c \
+MiddleWare\Third_Part\FreeRTOS\portable\MemMang\heap_4.c MiddleWare\Third_Part\FreeRTOS\*.c \
+MiddleWare\Third_Part\timer\*.c)
+
+INCULDE_DIR = CORE CORE\GD\GD32F10x\Include  FWLIB\Include HAL\inc HARDWARE\Battery HARDWARE\DSL_08 \
+HARDWARE\SCD4x MiddleWare\BlueTooth MiddleWare\Direction MiddleWare\FSM MiddleWare\Gas MiddleWare\IAP \
+MiddleWare\LED MiddleWare\LORA_Module MiddleWare\Msg_Handler MiddleWare\Sensirion MiddleWare\Slave \
+MiddleWare\SPI MiddleWare\Temperature MiddleWare\Third_Part\Board MiddleWare\Third_Part\FreeRTOS\include \
+MiddleWare\Third_Part\FreeRTOS\portable\ARM_CM3 MiddleWare\Third_Part\timer USER
+
+SRC_OBJS=$(patsubst USER/%.c, USER/%.o, $(SRCS))
+LIB_OBJS=$(patsubst %.c, %.o, $(LIBS))
+
+CFLAGS=-mthumb -mcpu=cortex-m4 -mfloat-abi=softfp -fno-builtin -fno-strict-aliasing -fdata-sections -fms-extensions -ffunction-sections -O1 -ggdb $(foreach dir,$(INCULDE_DIR),-I$(dir)) -D$(DEVICE)
+LDFLAGS=-mthumb -mcpu=cortex-m4 -mfloat-abi=softfp -Wl,--gc-sections -flto -specs=nano.specs -T gd32.ld -ggdb
+
+CC=arm-none-eabi-gcc
+LD=arm-none-eabi-gcc
+AR=arm-none-eabi-ar
+OC=arm-none-eabi-objcopy
+
+all: clean driver app
+
+app: $(SRC_OBJS)
+	$(LD) $(LDFLAGS) $^ -lc -lm lib/driver.a -o output.elf
+	$(OC) -O binary output.elf output.bin
+
+driver: $(LIB_OBJS)
+	$(AR) rcs lib/driver.a $^
+
+clean:
+	@del lib\*.o *.elf *.hex *.bin lib\*.a app\src\*.o
+
+flash:
+	@openocd -f cmsis-dap.cfg -f openocd_target.cfg  -c init -c halt -c "program output.bin 0x8000000" -c reset -c shutdown
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+lib/%.o: lib/src/%.c
+	$(CC) $(CFLAGS) -c $< -o $@

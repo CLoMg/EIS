@@ -1,6 +1,6 @@
 /*
- * FreeRTOS Kernel V10.3.1
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS Kernel V10.0.1
+ * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -166,7 +166,7 @@ not necessary for to use this port.  They are defined so the common demo files
 
 static portFORCE_INLINE void vPortSetBASEPRI( uint32_t ulBASEPRI )
 {
-	//__asm
+	__asm
 	{
 		/* Barrier instructions are not used as this function is only used to
 		lower the BASEPRI value. */
