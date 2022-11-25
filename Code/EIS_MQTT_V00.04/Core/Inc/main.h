@@ -59,25 +59,24 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define LED2_R_Pin GPIO_PIN_13
 #define LED2_R_GPIO_Port GPIOC
+#define Charge_Control_Pin GPIO_PIN_0
+#define Charge_Control_GPIO_Port GPIOA
 #define LED2_L_Pin GPIO_PIN_1
 #define LED2_L_GPIO_Port GPIOA
-#define LED_Run_Pin GPIO_PIN_11
-#define LED_Run_GPIO_Port GPIOA
-#define LED_ERR_Pin GPIO_PIN_10
-#define LED_ERR_GPIO_Port GPIOA
+#define ADC_Bat_Pin GPIO_PIN_1
+#define ADC_Bat_GPIO_Port GPIOB
+#define LED_Run_Pin GPIO_PIN_13
+#define LED_Run_GPIO_Port GPIOB
+#define LED_ERR_Pin GPIO_PIN_14
+#define LED_ERR_GPIO_Port GPIOB
 #define LORA_Wake_Pin GPIO_PIN_12
 #define LORA_Wake_GPIO_Port GPIOA
-#define LED1_L_Pin GPIO_PIN_3
-#define LED1_L_GPIO_Port GPIOB
-#define LED1_R_Pin GPIO_PIN_4
+#define LED1_L_Pin GPIO_PIN_15
+#define LED1_L_GPIO_Port GPIOA
+#define LED1_R_Pin GPIO_PIN_3
 #define LED1_R_GPIO_Port GPIOB
 #define LORA_nReset_Pin GPIO_PIN_8
 #define LORA_nReset_GPIO_Port GPIOB
-
-#define MultiPlexer_SW0_Pin GPIO_PIN_0
-#define MultiPlexer_SW0_GPIO_Port GPIOB
-#define MultiPlexer_SW1_Pin GPIO_PIN_7
-#define MultiPlexer_SW1_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

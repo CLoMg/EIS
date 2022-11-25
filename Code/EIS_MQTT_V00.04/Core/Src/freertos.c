@@ -22,20 +22,6 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
-#include "net_io.h"
-#include "net_device.h"
-#include "onenet.h"
-#include "selfcheck.h"
-#include "sht3x.h"
-#include "dsl_08.h"
-#include "fault.h"
-#include "mh4xx.h"
-#include "stm32f1xx_hal_gpio.h"
-#include "direct.h"
-#include "sysparams.h"
-#include "rtc.h"
-#include "scd4x_i2c.h"
-#include "iwdg.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -83,8 +69,6 @@ osThreadId NETHandle;
 //unsigned char dataStreamLen = sizeof(dataStream) / sizeof(dataStream[0]);
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
-osThreadId USARTHandle;
-osTimerId myTimer01Handle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -96,8 +80,6 @@ void NET_Task(void const * argument);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
-void USART_Task(void const * argument);
-void OS_TimerCallback(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -151,13 +133,7 @@ void MX_FREERTOS_Init(void) {
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
 
-//  /* Create the timer(s) */
-//  /* definition and creation of myTimer01 */
-//  osTimerDef(myTimer01, OS_TimerCallback);
-//  myTimer01Handle = osTimerCreate(osTimer(myTimer01), osTimerPeriodic, NULL);
-//	
-
-//  /* USER CODE BEGIN RTOS_TIMERS */
+  /* USER CODE BEGIN RTOS_TIMERS */
 //  /* start timers, add new ones, ... */
 //	osStatus timerresult = osOK;
 //	timerresult = osTimerStart(myTimer01Handle,1000);
@@ -167,16 +143,12 @@ void MX_FREERTOS_Init(void) {
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
-//  /* Create the thread(s) */
-//  /* definition and creation of defaultTask */
-//  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-//  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+  /* Create the thread(s) */
+  /* definition and creation of defaultTask */
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
-  /* definition and creation of USART */
-	osThreadDef(USART, USART_Task, osPriorityRealtime, 0, 128*4);
-  USARTHandle = osThreadCreate(osThread(USART), NULL);
-  
-//  /* USER CODE BEGIN RTOS_THREADS */
+  /* USER CODE BEGIN RTOS_THREADS */
 //  /* add threads, ... */
 //	osThreadDef(HEART, HEART_Task, osPriorityHigh, 0, 128);
 //  HEARTHandle = osThreadCreate(osThread(HEART), NULL);
@@ -225,85 +197,6 @@ void StartDefaultTask(void const * argument)
   }
   /* USER CODE END StartDefaultTask */
 }
-
-
-/* USER CODE BEGIN Header_USART_Task */
-/*
-************************************************************
-*	函数名称：	USART_Task
-*
-*	函数功能：	处理平台下发的命令
-*
-*	入口参数：	void类型的参数指针
-*
-*	返回参数：	无
-*
-*	说明：		串口接收任务。在数据模式下时，等待平台下发的命令并解析、处理
-************************************************************
-*/
-/* USER CODE END Header_USART_Task */
-void USART_Task(void const * argument)
-{
-  /* USER CODE BEGIN USART_Task */
-	if(MqttSample_Init(ctx) < 0)
-	{
-		UsartPrintf(USART_DEBUG, "MqttSample_Init Failed\r\n");
-	}
-  /* Infinite loop */
-  for(;;)
-  {
-		if(NET_DEVICE_Get_DataMode() == DEVICE_DATA_MODE)
-		{
-			if(Mqtt_RecvPkt(ctx->mqttctx) == MQTTERR_NOERROR)
-			{
-				NET_DEVICE_ClrData();
-			}
-		}
-    osDelay(10);
-  }
-  /* USER CODE END USART_Task */
-}
-
-
-/* OS_TimerCallback function */
-/*
-************************************************************
-*	函数名称：	OS_TimerCallBack
-*
-*	函数功能：	定时检查网络状态标志位
-*
-*	入口参数：	软件定时器句柄
-*
-*	返回参数：	无
-*
-*	说明：		定时器任务。定时检查网络状态，若持续超过设定时间无网络连接，则进行平台重连
-************************************************************
-*/
-void OS_TimerCallback(void const * argument)
-{
-  /* USER CODE BEGIN OS_TimerCallback */
-	if(oneNetInfo.netWork == 0)											//如果网络断开
-	{
-		if(++timerCount >= NET_TIME) 									//如果网络断开超时
-		{
-			UsartPrintf(USART_DEBUG, "Tips:		Timer Check Err\r\n");
-			
-			checkInfo.NET_DEVICE_OK = 0;								//置设备未检测标志
-			
-			NET_DEVICE_ReConfig(0);										//设备初始化步骤设置为开始状态
-			
-			oneNetInfo.netWork = 0;
-			
-			timerCount = 0;
-		}
-	}
-	else
-	{
-		timerCount = 0;													//清除计数
-	}
-  /* USER CODE END OS_TimerCallback */
-}
-
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
