@@ -61,10 +61,10 @@ void Error_Handler(void);
 #define LED2_R_GPIO_Port GPIOC
 #define Charge_Control_Pin GPIO_PIN_0
 #define Charge_Control_GPIO_Port GPIOA
-#define LED2_L_Pin GPIO_PIN_1
-#define LED2_L_GPIO_Port GPIOA
 #define ADC_Bat_Pin GPIO_PIN_1
 #define ADC_Bat_GPIO_Port GPIOB
+#define LED2_L_Pin GPIO_PIN_1
+#define LED2_L_GPIO_Port GPIOA
 #define LED_Run_Pin GPIO_PIN_13
 #define LED_Run_GPIO_Port GPIOB
 #define LED_ERR_Pin GPIO_PIN_14
@@ -77,6 +77,11 @@ void Error_Handler(void);
 #define LED1_R_GPIO_Port GPIOB
 #define LORA_nReset_Pin GPIO_PIN_8
 #define LORA_nReset_GPIO_Port GPIOB
+
+#define MultiPlexer_SW0_Pin GPIO_PIN_0
+#define MultiPlexer_SW0_GPIO_Port GPIOB
+#define MultiPlexer_SW1_Pin GPIO_PIN_7
+#define MultiPlexer_SW1_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

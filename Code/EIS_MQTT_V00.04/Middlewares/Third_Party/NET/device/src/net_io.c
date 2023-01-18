@@ -53,8 +53,8 @@ _Bool reconnect_flag = 0;
 //==========================================================
 void NET_IO_Init(void)
 {
-	MX_USART2_UART_Init();	
-	HAL_UART_Receive_IT(&huart2,Uart2_ReadCache,1);
+	MX_USART1_UART_Init();	
+	HAL_UART_Receive_IT(&huart1,Uart2_ReadCache,1);
 //	HAL_UARTEx_ReceiveToIdle_IT(&huart1,netIOInfo.buf,1);
 	NET_IO_ClearRecive();
 
@@ -77,7 +77,7 @@ void NET_IO_Send(unsigned char *str, unsigned short len)
 {
 
 //	unsigned short count = 0;
-	HAL_UART_Transmit(&huart2,str,len,0xFFFF);
+	HAL_UART_Transmit(&huart1,str,len,0xFFFF);
 //	for(; count < len; count++)											//发送一帧数据
 //	{
 //		USART_SendData(NET_IO, *str++);
@@ -176,10 +176,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 
 	//	RTOS_EnterInt();
-	if(huart == &huart2){
+	if(huart == &huart1){
 			if(netIOInfo.dataLen >= sizeof(netIOInfo.buf))	netIOInfo.dataLen = 0; //防止串口被刷爆
-			netIOInfo.buf[netIOInfo.dataLen++] = USART2->DR;
-			HAL_UART_Receive_IT(&huart2,Uart2_ReadCache,1);	
+			netIOInfo.buf[netIOInfo.dataLen++] = USART1->DR;
+			HAL_UART_Receive_IT(&huart1,Uart2_ReadCache,1);	
 	}
 
 	

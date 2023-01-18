@@ -29,6 +29,7 @@
 #include "gpio.h"
 #include "delay.h"
 #include "cmsis_os.h"
+#include "sysparams.h"
 
 //C¿â
 #include <string.h>
@@ -88,7 +89,7 @@ void NET_DEVICE_IO_Init(void)
 	
 	NET_IO_Init();
 	DelayMs(1000);
-
+	NET_IO_Send((unsigned char *)mac_strings,sizeof(mac_strings));
 }
 
 //==========================================================
@@ -499,7 +500,7 @@ unsigned char *NET_DEVICE_GetIPD(unsigned short timeOut)
 					return netIOInfo.buf;
 				#endif
 			}
-		osDelay(600);
+		osDelay(300);
 	} while(timeOut--);
 	
 	return NULL;

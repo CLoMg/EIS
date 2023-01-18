@@ -22,6 +22,7 @@ typedef struct
 	char port[8];
 	
 	unsigned char netWork : 1;		//0-局网模式(AP)		1-互联网模式(STA)
+	unsigned char syncTime: 1; //时间同步标识 0：未同步 1：同步
 	unsigned char sendData : 3;		//数据反馈
 	unsigned char errCount : 3;		//错误计数
 	unsigned char heartBeat : 1;
@@ -101,6 +102,10 @@ _Bool OneNet_HeartBeat(void);
 _Bool OneNet_OnLine(void);
 
 void OneNet_App(char *cmd);
+
+_Bool OneNet_Send_Process(void);
+
+void OneNet_Evesdrop(char *cmd);
 
 
 #endif

@@ -123,6 +123,30 @@ void HAL_RTC_MspDeInit(RTC_HandleTypeDef* rtcHandle)
 }
 
 /* USER CODE BEGIN 1 */
+
+/* USER CODE BEGIN 1 */
+unsigned short Read_MS(void)
+{
+	unsigned short ms = 0;
+	uint16_t ms_h = 0U ,ms_l = 0U, Micro_Seconds = 0U; 
+	uint32_t SF = RTC_AUTO_1_SECOND & 0x000FFFFF ;
+	RTC_DateTypeDef GetDate = {0};
+	RTC_TimeTypeDef GetTime = {0};
+	
+	HAL_RTC_GetTime(&hrtc, &GetTime, RTC_FORMAT_BIN);
+
+	ms_h = (*(uint32_t *)0x40002810) & 0x000F;
+	ms_l = (*(uint32_t *)0x40002814) & 0xFFFF;
+	Micro_Seconds = ((float)(SF - (((uint32_t)ms_h<<16)|ms_l))) / SF * 1000;
+	
+	HAL_RTC_GetDate(&hrtc, &GetDate, RTC_FORMAT_BIN);
+	
+	ms 	= GetTime.Seconds * 1000 + Micro_Seconds;
+
+	
+	return ms;
+}
+
 long long int Read_Stamp(void)
 {
 	struct tm tm_new;

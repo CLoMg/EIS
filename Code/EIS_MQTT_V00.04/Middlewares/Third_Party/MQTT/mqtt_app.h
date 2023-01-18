@@ -6,7 +6,7 @@
 
 
 
-
+extern struct MqttExtent *Send_List;
 struct MqttSampleContext
 {
 //    int epfd;

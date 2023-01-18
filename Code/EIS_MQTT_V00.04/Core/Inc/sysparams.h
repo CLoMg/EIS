@@ -15,8 +15,9 @@
 /*定义系统参数 Flash存储地址*/
 #define DevLoc_FlashAddr             SysParamAddr_Base + 0x00 //
 #define DevUpLoadPer_FlashAddr       SysParamAddr_Base + 0x04 //
+#define DevGroupInfo_FlashAddr       SysParamAddr_Base + 0x08
 
-
+extern unsigned short Group_Info[2];
 extern unsigned short DEV_LOC[2];
 extern unsigned short Upload_Period;
 extern char mac_strings[20];
@@ -31,6 +32,10 @@ void Dev_Location_Init(void);
 Re_Code_T Dev_Location_Change(unsigned short *devloc_new);
 /*设备位置信息读取*/
 Re_Code_T Dev_Loc_Read(int*dev_loc);
+/*函数功能：	设备分组信息初始化*/
+void Dev_GroupInfo_Init(void);
+/*函数功能：	设备分组信息修改*/
+Re_Code_T Dev_GroupInfo_Change(unsigned short *groupinfo_new);
 /*设备上传周期初始化*/
 void Dev_UpLoad_Per_Init(void);
 /*设备上传周期修改*/

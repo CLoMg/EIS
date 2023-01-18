@@ -13,10 +13,10 @@ extern "C" {
 
 #define MQTTSAVEDPTOPICNAME "Sdp"
 
-#define CMD_TOPIC_PREFIX "100601/ssb_uuid/"
+#define CMD_TOPIC_PREFIX "100220/ssb_uuid/"
 #define CMD_TOPIC_PREFIX_LEN 16 // strlen(CMD_TOPIC_PREFIX)
-#define RESP_CMD_TOPIC_PREFIX "100601/ssb_uuid/"
-#define RESP_CMD_TOPIC_PREFIX_LEN 16
+#define BAK_CMD_TOPIC_PREFIX "100220/qt_uuid/"
+#define BAK_CMD_TOPIC_PREFIX_LEN 15
 #define FORMAT_TIME_STRING_SIZE 23
 
 /** MQTT错误码 */

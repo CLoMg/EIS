@@ -22,6 +22,20 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
+#include "net_io.h"
+#include "net_device.h"
+#include "onenet.h"
+#include "selfcheck.h"
+#include "sht3x.h"
+#include "dsl_08.h"
+#include "fault.h"
+#include "mh4xx.h"
+#include "stm32f1xx_hal_gpio.h"
+#include "direct.h"
+#include "sysparams.h"
+#include "rtc.h"
+#include "scd4x_i2c.h"
+#include "iwdg.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -47,28 +61,14 @@ unsigned short timerCount = 0;
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 osThreadId HEARTHandle;
-osThreadId FAULTHandle;
 osThreadId SENSORHandle;
 osThreadId SENDHandle;
 osThreadId NETHandle;
+osThreadId USARTHandle;
 
-////数据流
-//DATA_STREAM dataStream[] = {
-//								{"Red_Led", &ledStatus.Led4Sta, TYPE_BOOL, 1},
-//								{"Green_Led", &ledStatus.Led5Sta, TYPE_BOOL, 1},
-//								{"Yellow_Led", &ledStatus.Led6Sta, TYPE_BOOL, 1},
-//								{"Blue_Led", &ledStatus.Led7Sta, TYPE_BOOL, 1},
-//								{"beep", &beepInfo.Beep_Status, TYPE_BOOL, 1},
-//								{"temperature", &sht20Info.tempreture, TYPE_FLOAT, 1},
-//								{"humidity", &sht20Info.humidity, TYPE_FLOAT, 1},
-//								{"Xg", &adxlInfo.incidence_Xf, TYPE_FLOAT, 1},
-//								{"Yg", &adxlInfo.incidence_Yf, TYPE_FLOAT, 1},
-//								{"Zg", &adxlInfo.incidence_Zf, TYPE_FLOAT, 1},
-//								{"errType", &faultTypeReport, TYPE_UCHAR, 1},
-//							};
-//unsigned char dataStreamLen = sizeof(dataStream) / sizeof(dataStream[0]);
-/* USER CODE END Variables */
 osThreadId defaultTaskHandle;
+osThreadId FAULTHandle;
+osTimerId myTimer01Handle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -80,6 +80,8 @@ void NET_Task(void const * argument);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
+void USART_Task(void const * argument);
+void OS_TimerCallback(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -133,7 +135,13 @@ void MX_FREERTOS_Init(void) {
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
 
-  /* USER CODE BEGIN RTOS_TIMERS */
+//  /* Create the timer(s) */
+//  /* definition and creation of myTimer01 */
+//  osTimerDef(myTimer01, OS_TimerCallback);
+//  myTimer01Handle = osTimerCreate(osTimer(myTimer01), osTimerPeriodic, NULL);
+//	
+
+//  /* USER CODE BEGIN RTOS_TIMERS */
 //  /* start timers, add new ones, ... */
 //	osStatus timerresult = osOK;
 //	timerresult = osTimerStart(myTimer01Handle,1000);
@@ -143,26 +151,30 @@ void MX_FREERTOS_Init(void) {
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
-  /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+//  /* Create the thread(s) */
+//  /* definition and creation of defaultTask */
+//  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+//  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
-  /* USER CODE BEGIN RTOS_THREADS */
+//  /* definition and creation of USART */
+	osThreadDef(USART, USART_Task, osPriorityRealtime, 0, 128*3);
+  USARTHandle = osThreadCreate(osThread(USART), NULL);
+  
+//  /* USER CODE BEGIN RTOS_THREADS */
 //  /* add threads, ... */
 //	osThreadDef(HEART, HEART_Task, osPriorityHigh, 0, 128);
 //  HEARTHandle = osThreadCreate(osThread(HEART), NULL);
 //	
-	osThreadDef(IWDG, IWDG_Task, osPriorityIdle, 0, 128);
+	osThreadDef(IWDG, IWDG_Task, osPriorityLow ,0, 64);
 	FAULTHandle = osThreadCreate(osThread(IWDG), NULL);
 //	
 
-	osThreadDef(NET, NET_Task, osPriorityLow, 0, 128*4);
+	osThreadDef(NET, NET_Task, osPriorityBelowNormal, 0, 128*3);
 	NETHandle = osThreadCreate(osThread(NET), NULL);
 //
-	osThreadDef(SENSOR, SENSOR_Task, osPriorityNormal, 0, 128*2);
+	osThreadDef(SENSOR, SENSOR_Task, osPriorityNormal, 0, 128*4);
 	SENSORHandle = osThreadCreate(osThread(SENSOR), NULL);
-//	
+////	
 	osThreadDef(SEND, SEND_Task, osPriorityNormal, 0, 128*4);
 	SENDHandle = osThreadCreate(osThread(SEND), NULL);
 //	
@@ -191,12 +203,52 @@ void StartDefaultTask(void const * argument)
 			NET_DEVICE_Reset();														//网络设备复位			
 			netDeviceInfo.initStep = 0 ;
 			NET_DEVICE_Init(oneNetInfo.ip, oneNetInfo.port)	;	
-		
 		}
     osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */
 }
+
+
+/* USER CODE BEGIN Header_USART_Task */
+/*
+************************************************************
+*	函数名称：	USART_Task
+*
+*	函数功能：	处理平台下发的命令
+*
+*	入口参数：	void类型的参数指针
+*
+*	返回参数：	无
+*
+*	说明：		串口接收任务。在数据模式下时，等待平台下发的命令并解析、处理
+************************************************************
+*/
+/* USER CODE END Header_USART_Task */
+void USART_Task(void const * argument)
+{
+  /* USER CODE BEGIN USART_Task */
+	if(MqttSample_Init(ctx) < 0)
+	{
+		UsartPrintf(USART_DEBUG, "MqttSample_Init Failed\r\n");
+	}
+  /* Infinite loop */
+  for(;;)
+  {
+		if(NET_DEVICE_Get_DataMode() == DEVICE_DATA_MODE)
+		{
+			if(Mqtt_RecvPkt(ctx->mqttctx) == MQTTERR_NOERROR)
+			{
+				NET_DEVICE_ClrData();
+
+			}
+		}
+    osDelay(10);
+  }
+  /* USER CODE END USART_Task */
+}
+
+
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
@@ -217,18 +269,26 @@ void StartDefaultTask(void const * argument)
 void SENSOR_Task(void const * argument)
 {
 	uint8_t dummy_buff[20];
-	//scd4x_init();
+	unsigned char upload_cnt = 0;
+	unsigned int PreWakeTime = osKernelSysTick();
+	scd4x_init();
 	Direct_Init();
-	//PM_Sensor_Init();
+	PM_Sensor_Init();
 	for(;;)
 	{
-		//SCDxx_Process(dummy_buff);
-		//AQI_Process();
+		SCDxx_Process(dummy_buff);
+		AQI_Process();
 		HAL_GPIO_TogglePin(LED_ERR_GPIO_Port,LED_ERR_Pin);
 		HAL_GPIO_TogglePin(LED_Run_GPIO_Port,LED_Run_Pin);
-		osDelay(5000); 										//挂起任务500ms
-	}
 
+		upload_cnt++;
+		if(upload_cnt == Upload_Period){
+			upload_cnt = 0;
+			OneNet_SendData(0);
+
+		}		
+		osDelayUntil(&PreWakeTime,1000);		
+	}
 }
 
 /*
@@ -279,7 +339,6 @@ void HEART_Task(void const * argument)
   {
 		
 		OneNet_HeartBeat();
-		//UsartPrintf(USART_DEBUG,"HEART_TASK STACK REMAINED: %d \r\n",uxTaskGetStackHighWaterMark(HEARTHandle));
     osDelay(60000);
   }
   /* USER CODE END USART_Task */
@@ -334,11 +393,8 @@ void SEND_Task(void const * argument)
 
 	for(;;)
 	{
-		OneNet_SendData(0);
-		osDelay((unsigned int)Upload_Period*1000);
-
-//		remainstack_size = uxTaskGetStackHighWaterMark(SENDHandle);
-			//osDelay(1000);
+		OneNet_Send_Process();
+		osDelay(10);
 	}
 
 }
@@ -359,23 +415,31 @@ void SEND_Task(void const * argument)
 
 void NET_Task(void const * argument)
 {
-//	UBaseType_t remainstack_size = 0; 
+	unsigned short syncTime_wait = 0;
 	NET_DEVICE_IO_Init();													//网络设备IO初始化
-	//NET_DEVICE_Reset();														//网络设备复位
 	NET_DEVICE_Set_DataMode(DEVICE_DATA_MODE);								//设置为命令收发模式(例如ESP8266要区分AT的返回还是平台下发数据的返回)
 
 	while(1)
 	{
-			//UsartPrintf(USART_DEBUG,"NETHandle STACK REMAINED: %d \r\n",uxTaskGetStackHighWaterMark(NETHandle));
-			if(oneNetInfo.netWork != 1)			//初始化网络设备，能连入网络
+			if(oneNetInfo.syncTime !=1)
+		{
+			syncTime_wait++;
+			if(syncTime_wait > 3000)
 			{
-					oneNetInfo.netWork = 1;
-					OneNet_Subscribe();
-					osDelay(1000);
-					OneNet_OnLine();
+				OneNet_OnLine();
+				syncTime_wait = 0;
 			}
-		osDelay(25);													//挂起任务25ms
 		}
+		else{
+			if(oneNetInfo.netWork !=1)
+			{
+				oneNetInfo.netWork =1;
+				OneNet_Subscribe();
+			}
+		}
+		
+		osDelay(20);													//挂起任务25ms
+	}
 }
 /* USER CODE END Application */
 

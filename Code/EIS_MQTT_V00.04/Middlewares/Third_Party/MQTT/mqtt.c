@@ -10,6 +10,7 @@ v2.0 2016/4/19
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
+#include "onenet.h"
 
 #include "FreeRTOS.h"
 #include "usart.h"
@@ -472,19 +473,40 @@ static int Mqtt_HandlePublish(struct MqttContext *ctx, char flags,
             cmdid = topic + i;
 						if(strstr(cmdid,mac_strings) !=NULL)
 						{
-							if(strstr(cmdid,"function/down")!= NULL){
+							if(strstr(cmdid,"/down")!= NULL){
 								 arg = payload;
 								 arg_len = payload_len;
 								 err = ctx->handle_cmd(ctx->handle_cmd_arg, pkt_id, cmdid,
                                   ts, desc, arg, arg_len, dup,
                                   (enum MqttQosLevel)qos);
 							}
-							else if(strstr(cmdid,"property/down")!= NULL){
-							   err = ctx->handle_publish(ctx->handle_publish_arg, pkt_id, topic,
-                                  payload, payload_len, dup,
-                                  (enum MqttQosLevel)qos);
-							}
 						}
+						else
+						{
+							if(oneNetInfo.syncTime != 1){
+							//NET_DEVICE_SendData("Other DEV Data\r\n",strlen("Other DEV Data\r\n"));
+							if(strstr(cmdid,"/down")!= NULL){
+							 arg = payload;
+							 arg_len = payload_len;
+							 err = ctx->handle_cmd(ctx->handle_cmd_arg, pkt_id, cmdid,
+																ts, desc, arg, arg_len, dup,
+																(enum MqttQosLevel)qos);
+								}
+							}		
+						}
+					}
+				else if((NULL != strstr((const char *)topic, (const char*)BAK_CMD_TOPIC_PREFIX))&&(oneNetInfo.syncTime !=1)){
+				//NET_DEVICE_SendData("Other Item Data\r\n",strlen("Other Item Data\r\n"));
+					i=BAK_CMD_TOPIC_PREFIX_LEN; //Topicname=$creq字符串’\0’结尾
+					cmdid = topic + i;
+					if(strstr(cmdid,"/down")!= NULL){
+						arg = payload;
+						arg_len = payload_len;
+						err = ctx->handle_cmd(ctx->handle_cmd_arg, pkt_id, cmdid,
+														ts, desc, arg, arg_len, dup,
+														(enum MqttQosLevel)qos);
+					}
+				}
 
 //            /*
 //            while( i<(topic_len-CMD_TOPIC_PREFIX_LEN)&&topic[i]!='/' ){
@@ -539,8 +561,6 @@ static int Mqtt_HandlePublish(struct MqttContext *ctx, char flags,
 //            err = ctx->handle_cmd(ctx->handle_cmd_arg, pkt_id, cmdid,
 //                                  ts, desc, arg, arg_len, dup,
 //                                  (enum MqttQosLevel)qos);
-
-        }
     }
     else {
         err = ctx->handle_publish(ctx->handle_publish_arg, pkt_id, topic,
@@ -1603,8 +1623,8 @@ int Mqtt_PackCmdRetPkt(struct MqttBuffer *buf, uint16_t pkt_id, const char *cmdi
         return MQTTERR_OUTOFMEMORY;
     }
 
-    memcpy(ext->payload, RESP_CMD_TOPIC_PREFIX, RESP_CMD_TOPIC_PREFIX_LEN);
-    strcpy(ext->payload + RESP_CMD_TOPIC_PREFIX_LEN, cmdid);
+    memcpy(ext->payload, CMD_TOPIC_PREFIX, CMD_TOPIC_PREFIX_LEN);
+    strcpy(ext->payload + CMD_TOPIC_PREFIX_LEN, cmdid);
 
     return (MQTT_QOS_LEVEL1 == qos)?
         Mqtt_PackPublishPkt(buf, pkt_id, ext->payload, ret, ret_len,

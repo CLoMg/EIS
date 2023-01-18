@@ -42,6 +42,7 @@ void MX_RTC_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 long long int Read_Stamp(void);
+	unsigned short Read_MS(void);
 void Dev_Set_Time(unsigned int timestamp);
 /* USER CODE END Prototypes */
 

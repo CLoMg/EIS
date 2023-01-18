@@ -116,5 +116,14 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 }
 
 /* USER CODE BEGIN 1 */
-
+unsigned int ADC_Value_Get(void)
+{
+	unsigned char i = 0;
+	unsigned int sum = 0;
+	
+	for(i=0;i<5;++i){
+		sum  += HAL_ADC_GetValue(&hadc1);
+	}
+	return sum/5;
+}
 /* USER CODE END 1 */

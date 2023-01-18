@@ -22,7 +22,7 @@ void STMFLASH_WriteLenByte(unsigned int WriteAddr,unsigned int DataToWrite,unsig
 unsigned int STMFLASH_ReadLenByte(unsigned int ReadAddr,unsigned short Len);						//指定地址开始读取指定长度数据
 void STMFLASH_Write(unsigned int WriteAddr,unsigned short *pBuffer,unsigned short NumToWrite);		//从指定地址开始写入指定长度的数据
 void STMFLASH_Read(unsigned int ReadAddr,unsigned short *pBuffer,unsigned short NumToRead);   		//从指定地址开始读出指定长度的数据
-
+unsigned int STMFLASH_ReadWord(unsigned int faddr);
 //测试写入
 void Test_Write(unsigned int WriteAddr,unsigned short WriteData);								   
 #endif

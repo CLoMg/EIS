@@ -22,7 +22,7 @@
 #define STRLEN 64
 char g_cmdid[STRLEN];
 
-
+struct MqttExtent *Send_List = NULL;
 
 
 
@@ -80,22 +80,39 @@ int MqttSample_SendPkt(void *arg, const struct iovec *iov, int iovcnt)
     int bytes;
 
     int i=0;
-    UsartPrintf(USART_DEBUG, "send one pkt\n");
+    //UsartPrintf(USART_DEBUG, "send one pkt\n");
     for(i=0; i<iovcnt; ++i)
     {
-        char *pkg = (char*)iov[i].iov_base;
-        for(int j=0; j<iov[i].iov_len; ++j)
-        {
-            UsartPrintf(USART_DEBUG, "%02X ", pkg[j]&0xFF);
-        }
-        UsartPrintf(USART_DEBUG, "\n");
+ //       char *pkg = (char*)iov[i].iov_base;
+//        for(int j=0; j<iov[i].iov_len; ++j)
+//        {
+//            UsartPrintf(USART_DEBUG, "%02X ", pkg[j]&0xFF);
+//        }
+        //UsartPrintf(USART_DEBUG, "\n");
         
         memcpy(sendbuf+len, iov[i].iov_base, iov[i].iov_len);
         len += iov[i].iov_len;
     }
-    
-	NET_DEVICE_SendData((unsigned char *)sendbuf, len);
-    UsartPrintf(USART_DEBUG, "send over\n");
+      //这里考虑把数据发送修改为插入链表，然后设备在发送窗口把链表数据统一发送出去
+	struct MqttExtent *q = (struct MqttExtent *)pvPortMalloc(sizeof(struct MqttExtent));
+	char *payload = (char *)pvPortMalloc(sizeof(char)*len);
+	memcpy(payload,sendbuf,len);
+	q->len = len;
+	q->payload = payload;
+	q->next = NULL;
+	if(Send_List != NULL)
+	{
+		struct MqttExtent *p = Send_List; 
+		while(p->next != NULL)
+			p = p->next;
+		p->next = q;
+	}
+	else
+	{
+		Send_List = q;
+	}
+//	NET_DEVICE_SendData((unsigned char *)sendbuf, len);
+//    UsartPrintf(USART_DEBUG, "send over\n");
 
     return bytes;
 }
@@ -251,7 +268,10 @@ int MqttSample_HandleCmd(void *arg, uint16_t pkt_id, const char *cmdid,
     UsartPrintf(USART_DEBUG, "\r\n");
     memcpy(cmd_str, cmdarg, cmdarg_len);
     UsartPrintf(USART_DEBUG, "cmd: %s\r\n", cmd_str);
-	  OneNet_App(cmd_str);
+		if(strstr(cmdid,mac_strings)!=NULL)
+			OneNet_App(cmd_str);
+		
+	  OneNet_Evesdrop(cmd_str);
 
     return 0;
 }
@@ -263,7 +283,7 @@ int MqttSample_Subscribe(struct MqttSampleContext *ctx, char **topic, int num)
 
     err = Mqtt_PackSubscribePkt(ctx->mqttbuf, 2, MQTT_QOS_LEVEL1, (const char **)topic, num);
     if(err != MQTTERR_NOERROR) {
-        UsartPrintf(USART_DEBUG, "Critical bug: failed to pack the subscribe packet.\n");
+       // UsartPrintf(USART_DEBUG, "Critical bug: failed to pack the subscribe packet.\n");
         return -1;
     }
 
@@ -417,7 +437,7 @@ int MqttSample_Init(struct MqttSampleContext *ctx)
     ctx->devid = oneNetInfo.devID;
     ctx->cmdid[0] = '\0';
 
-    err = Mqtt_InitContext(ctx->mqttctx, 300);
+    err = Mqtt_InitContext(ctx->mqttctx, 400);
     if(MQTTERR_NOERROR != err) {
         UsartPrintf(USART_DEBUG, "Failed to init MQTT context errcode is %d", err);
         return -1;

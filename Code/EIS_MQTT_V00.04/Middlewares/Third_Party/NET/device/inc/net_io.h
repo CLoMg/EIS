@@ -13,14 +13,14 @@ typedef struct
 	unsigned short dataLen;
 	unsigned short dataLenPre;
 	
-	unsigned char buf[320];
+	unsigned char buf[400];
 
 } NET_IO_INFO;
 
 #define REV_OK		0
 #define REV_WAIT	1
 
-#define NET_IO		(&huart2)
+#define NET_IO		(&huart1)
 
 extern NET_IO_INFO netIOInfo;
 extern uint8_t Uart2_ReadCache[10];

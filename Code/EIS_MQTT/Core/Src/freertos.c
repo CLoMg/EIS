@@ -174,7 +174,7 @@ void MX_FREERTOS_Init(void) {
 //  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of USART */
-	osThreadDef(DRP, DRP_Task, osPriorityRealtime, 0, 128*4);
+  osThreadDef(DRP, DRP_Task, osPriorityRealtime, 0, 128*4);
   DRPHandle = osThreadCreate(osThread(DRP), NULL);
   
 //  /* USER CODE BEGIN RTOS_THREADS */
@@ -387,8 +387,8 @@ void HEART_Task(void const * argument)
   for(;;)
   {
 		
-		OneNet_HeartBeat();
-		//UsartPrintf(USART_DEBUG,"HEART_TASK STACK REMAINED: %d \r\n",uxTaskGetStackHighWaterMark(HEARTHandle));
+	OneNet_HeartBeat();
+	//UsartPrintf(USART_DEBUG,"HEART_TASK STACK REMAINED: %d \r\n",uxTaskGetStackHighWaterMark(HEARTHandle));
     osDelay(60000);
   }
   /* USER CODE END USART_Task */
@@ -445,9 +445,6 @@ void SEND_Task(void const * argument)
 	{
 		OneNet_SendData(0);
 		osDelay((unsigned int)Upload_Period*1000);
-
-//		remainstack_size = uxTaskGetStackHighWaterMark(SENDHandle);
-			//osDelay(1000);
 	}
 
 }

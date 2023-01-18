@@ -33,6 +33,7 @@
 #include "sysparams.h"
 
 //硬件驱动
+#include "sysparams.h"
 #include "usart.h"
 #include "delay.h"
 #include "led.h"
@@ -54,6 +55,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "cmsis_os.h"
 
 
 
@@ -184,16 +187,16 @@ _Bool OneNet_SendData(unsigned char len)
 	cJSON *params = NULL;
 	params = cJSON_CreateObject();
 	
-	cJSON *property = cJSON_CreateObject();
-	cJSON_AddNumberToObject(property,"Temp_Env",Temp_Value);
-	cJSON_AddNumberToObject(property,"Humi_Env",Humi_Value);
-	cJSON_AddNumberToObject(property,"CO2",CO2_Value);
-	cJSON_AddNumberToObject(property,"PM2.5",PM25_Data);
-	cJSON_AddNumberToObject(property,"PM10",PM10_Data);
-	cJSON_AddNumberToObject(property,"Lgt_Dir",(unsigned char)Direct_Light_Get());
-	cJSON_AddStringToObject(property,"Mac",mac_strings);
+	//cJSON *property = cJSON_CreateObject();
+	cJSON_AddNumberToObject(params,"Temp_Env",Temp_Value);
+	cJSON_AddNumberToObject(params,"Humi_Env",Humi_Value);
+	cJSON_AddNumberToObject(params,"CO2",CO2_Value);
+	cJSON_AddNumberToObject(params,"PM2.5",PM25_Data);
+	cJSON_AddNumberToObject(params,"PM10",PM10_Data);
+	cJSON_AddNumberToObject(params,"Lgt_Dir",(unsigned char)Direct_Light_Get());
+	cJSON_AddStringToObject(params,"Mac",mac_strings);
 	
-	cJSON_AddItemToObject(params,"property",property);
+	//cJSON_AddItemToObject(params,"property",property);
 	
 	cJSON_AddItemToObject(Dev_Propert,"params",params);
 	cjson_send = cJSON_Print(Dev_Propert);
@@ -217,6 +220,72 @@ _Bool OneNet_SendData(unsigned char len)
 
 }
 
+/*
+************************************************************
+*	函数名称：	OneNet_SendData
+*
+*	函数功能：	上传数据到平台
+*
+*	入口参数：	len：发送数据流的个数
+*
+*	返回参数：	无
+*
+*	说明：		
+************************************************************
+*/
+
+_Bool OneNet_Send_Process(void)
+{
+	unsigned char send_buff[400];
+	unsigned short len = 0;
+	unsigned short window_start = 0;
+	unsigned short window_stop = 0;
+	unsigned short sub_sec = 0;
+	sub_sec = Read_MS()%(Upload_Period*1000);
+	//如果没有初始化
+	if((Group_Info[0] == 0)||(Group_Info[1] == 0))
+	{
+		//发送链表函数
+		struct MqttExtent *q;
+		if(Send_List != NULL)
+		{
+			q = Send_List->next;
+			Send_List->next = NULL;
+			len = Send_List->len;
+			memcpy(send_buff,Send_List->payload,len);
+			vPortFree(Send_List->payload);
+			vPortFree(Send_List);
+			Send_List = q;
+		}
+		memset(send_buff,0,400);
+	}
+	else
+	{
+		window_start = Upload_Period * 1000 / Group_Info[0] * (Group_Info[1]-1);
+		window_stop = window_start + 800;
+		while((sub_sec >= window_start)&&(sub_sec<=window_stop))
+		{
+			//发送链表函数
+			struct MqttExtent *q;
+			if(Send_List != NULL)
+			{
+				q = Send_List->next;
+				Send_List->next = NULL;
+				len = Send_List->len;
+				memcpy(send_buff,Send_List->payload,len);
+				vPortFree(Send_List->payload);
+				vPortFree(Send_List);
+				Send_List = q;
+				NET_DEVICE_SendData(send_buff,len);
+				osDelay(150);
+			}
+			memset(send_buff,0,400);
+			sub_sec = Read_MS()%(Upload_Period*1000);
+		}
+	}
+		
+	return 0;
+}
 /*
 ************************************************************
 *	函数名称：	OneNet_Publish
@@ -263,24 +332,6 @@ _Bool OneNet_Publish(const char *topic, const char *payload)
 */
 _Bool OneNet_Subscribe(void)
 {
-//	//char *type_str[] = {"/property/","/function/","/event/"};
-//	char i = 0; 
-//	if(!oneNetInfo.netWork || NET_DEVICE_Get_DataMode() != DEVICE_DATA_MODE)		//如果网络未连接 或 不为数据收发模式
-//		return 1;
-//	wait_reply = 0;
-//	NET_DEVICE_ClrData();
-//	
-//	UsartPrintf(USART_DEBUG, "OneNet_Subscribe\r\n");
-//	
-//	//topic_str[0] = (char *)pvPortMalloc(sizeof(char)*50);
-//	for(i=0;i<3;++i){
-//		//sprintf(topic_str[0],"%s%s%s%s",CMD_TOPIC_PREFIX,mac_strings,type_str[i],"down");
-//		if(MqttSample_Subscribe(ctx,&topic_str[i], 1) == 0)									//可一次订阅多个
-//			Mqtt_SendPkt(ctx->mqttctx, ctx->mqttbuf, 0);
-//		MqttBuffer_Reset(ctx->mqttbuf);
-//	}
-////vPortFree(topic_str[0]);
-	
 	char *type_str[] = {"/property/","/function/","/event/"};
 	char i = 0;
 	if(!oneNetInfo.netWork)		//如果网络未连接 或 不为数据收发模式
@@ -288,7 +339,7 @@ _Bool OneNet_Subscribe(void)
 	wait_reply = 0;
 	NET_DEVICE_ClrData();
 	
-	UsartPrintf(USART_DEBUG, "OneNet_Subscribe\r\n");
+//	UsartPrintf(USART_DEBUG, "OneNet_Subscribe\r\n");
 	char *topic_string = pvPortMalloc(strlen(CMD_TOPIC_PREFIX)+strlen(mac_strings)+strlen("/property/down"));
 	for(i = 0;i < 3;++i){
 		memset(topic_string,0,strlen(topic_string));
@@ -324,8 +375,6 @@ _Bool OneNet_OnLine(void)
 {
 	char *cjson_send = NULL;
 
-	if(!oneNetInfo.netWork)															//如果网络未连接
-		return 1;
 	 
 	RTOS_ENTER_CRITICAL();
 	cJSON *Dev_Propert = NULL;
@@ -535,6 +584,43 @@ _Bool OneNet_HeartBeat(void)
 
 /*
 ************************************************************
+*	函数名称：	OneNeT_Evesdrop
+*
+*	函数功能：	窃听同信道其他设备消息
+*
+*	入口参数：	cmd：平台下发的命令
+*
+*	返回参数：	无
+*
+*	说明：		提取出有用消息，进行处理
+************************************************************
+*/
+void OneNet_Evesdrop(char *cmd)
+{
+
+	cJSON	*cjson_cmd = NULL;
+	cjson_cmd = cJSON_Parse(cmd);
+
+	if(cjson_cmd == NULL)
+	{
+		UsartPrintf(USART_DEBUG,"Can't find valid cmd\r\n");
+	}
+	else
+	{
+
+		cJSON *cjson_timestamp = cJSON_GetObjectItem(cjson_cmd,"timestamp");
+		if(cjson_timestamp != NULL)
+		{		
+			double timestamp = strtod(cjson_timestamp->valuestring,NULL);
+			Dev_Set_Time(timestamp/1000);
+			oneNetInfo.syncTime = 1;
+		}
+	}
+	cJSON_Delete(cjson_cmd);
+}
+
+/*
+************************************************************
 *	函数名称：	OneNet_App
 *
 *	函数功能：	平台下发命令解析、处理
@@ -573,6 +659,10 @@ void OneNet_App(char *cmd)
 		}
 		else
 		{
+			char *topic_string = pvPortMalloc(strlen(CMD_TOPIC_PREFIX)+strlen(mac_strings)+strlen("/function/up")+1);
+			topic_string  = strcpy(topic_string,CMD_TOPIC_PREFIX);
+			topic_string = strcat(topic_string,mac_strings);
+			topic_string = strcat(topic_string,"/function/up");
 			if(strstr(cjson_method->valuestring,"Sync_Time")!=NULL)
 			{
 				cJSON *cjson_params= cJSON_GetObjectItem(cjson_cmd,"params");
@@ -582,14 +672,13 @@ void OneNet_App(char *cmd)
 						{
 						/*控制指令处理函数*/
 							long  timestamp = cjson_timestamp->valuedouble/1000;
-//							long long timestamp = cjson_params->child->valuedouble/1000;
 							char *re_msg = NULL;
 							Dev_Set_Time(timestamp);
 											//标记数据反馈
 							cJSON_AddNumberToObject(cjson_params,"exec_result",1);
 							cJSON_ReplaceItemInObject(cjson_cmd,"type",cJSON_CreateString("reply"));
 							re_msg = cJSON_Print(cjson_cmd);
-							OneNet_Publish("100601/ssb_uuid/12333131354838a3/function/up",re_msg);
+							OneNet_Publish(topic_string,re_msg);
 						
 							vPortFree(re_msg);
 							oneNetInfo.sendData = 1;					//标记数据反馈
@@ -612,16 +701,44 @@ void OneNet_App(char *cmd)
 							cJSON_AddNumberToObject(cjson_params,"exec_result",re_code);
 							cJSON_ReplaceItemInObject(cjson_cmd,"type",cJSON_CreateString("reply"));
 							re_msg = cJSON_Print(cjson_cmd);
-							vTaskDelay(200/portTICK_PERIOD_MS);
-							OneNet_Publish("100601/ssb_uuid/12333131354838a3/function/up",re_msg);
-							vTaskDelay(1000/portTICK_PERIOD_MS);
-							OneNet_SendData(0);
-						
+							OneNet_Publish(topic_string,re_msg);
+							
 							vPortFree(re_msg);
+							oneNetInfo.sendData = 1;					//标记数据反馈
 						}
 				}
 			}
-			
+			else if(strstr(cjson_method->valuestring,"Send_GroupInfo")!=NULL)
+			{
+				cJSON *cjson_params= cJSON_GetObjectItem(cjson_cmd,"params");
+				if(cjson_params !=NULL){
+						
+						cJSON *cjson_groupinfo = cJSON_GetObjectItem(cjson_params,"GroupInfo");
+						if(cjson_groupinfo != NULL)
+						{
+							int array_size = 0;
+							array_size = cJSON_GetArraySize(cjson_groupinfo);
+							if(array_size ==2 )
+							{
+									/*控制指令处理函数*/
+								unsigned short group_buff[2] = {0,};
+								for(int i =0; i < array_size; ++i)
+									group_buff[i] = (unsigned short)cJSON_GetArrayItem(cjson_groupinfo,i)->valueint;
+								char *re_msg = NULL;
+								Dev_GroupInfo_Change(group_buff);
+												//标记数据反馈
+								cJSON_AddNumberToObject(cjson_params,"exec_result",1);
+								cJSON_ReplaceItemInObject(cjson_cmd,"type",cJSON_CreateString("reply"));
+								re_msg = cJSON_Print(cjson_cmd);
+								OneNet_Publish(topic_string,re_msg);
+							
+								vPortFree(re_msg);
+								oneNetInfo.sendData = 1;					//标记数据反馈
+							}
+						
+						}
+				}
+			}
 			else if(strstr(cjson_method->valuestring,"Read_DUP")!=NULL)
 			{
 				cJSON *cjson_params= cJSON_GetObjectItem(cjson_cmd,"params");
@@ -637,7 +754,7 @@ void OneNet_App(char *cmd)
 						cJSON_AddNumberToObject(cjson_params,"result",re_code);
 						cJSON_ReplaceItemInObject(cjson_cmd,"type",cJSON_CreateString("reply"));
 						re_msg = cJSON_Print(cjson_cmd);
-						OneNet_Publish("100601/ssb_uuid/12333131354838a3/function/up",re_msg);
+						OneNet_Publish(topic_string,re_msg);
 					
 						vPortFree(re_msg);
 				}
@@ -658,7 +775,7 @@ void OneNet_App(char *cmd)
 						cJSON_AddNumberToObject(cjson_params,"exec_result",re_code);
 						cJSON_ReplaceItemInObject(cjson_cmd,"type",cJSON_CreateString("reply"));
 						re_msg = cJSON_Print(cjson_cmd);
-						OneNet_Publish("100601/ssb_uuid/12333131354838a3/function/up",re_msg);
+						OneNet_Publish(topic_string,re_msg);
 						vPortFree(re_msg);
 					}
 				}
@@ -677,7 +794,7 @@ void OneNet_App(char *cmd)
 					cJSON_AddNumberToObject(cjson_params,"result",re_code);
 					cJSON_ReplaceItemInObject(cjson_cmd,"type",cJSON_CreateString("reply"));
 					re_msg = cJSON_Print(cjson_cmd);
-					OneNet_Publish("100601/ssb_uuid/12333131354838a3/function/up",re_msg);
+					OneNet_Publish(topic_string,re_msg);
 					vPortFree(re_msg);
 				}
 			}
@@ -698,7 +815,7 @@ void OneNet_App(char *cmd)
 						cJSON_AddNumberToObject(cjson_params,"exec_result",re_code);
 						cJSON_ReplaceItemInObject(cjson_cmd,"type",cJSON_CreateString("reply"));
 						re_msg = cJSON_Print(cjson_cmd);
-						OneNet_Publish("100601/ssb_uuid/12333131354838a3/function/up",re_msg);
+						OneNet_Publish(topic_string,re_msg);
 						vPortFree(re_msg);
 					}
 				}
@@ -718,7 +835,7 @@ void OneNet_App(char *cmd)
 						cJSON_AddNumberToObject(cjson_params,"result",re_code);
 						cJSON_ReplaceItemInObject(cjson_cmd,"type",cJSON_CreateString("reply"));
 						re_msg = cJSON_Print(cjson_cmd);
-						OneNet_Publish("100601/ssb_uuid/12333131354838a3/function/up",re_msg);
+						OneNet_Publish(topic_string,re_msg);
 					
 						vPortFree(re_msg);
 				}
@@ -744,7 +861,7 @@ void OneNet_App(char *cmd)
 						cJSON_AddNumberToObject(cjson_params,"exec_result",re_code);
 						cJSON_ReplaceItemInObject(cjson_cmd,"type",cJSON_CreateString("reply"));
 						re_msg = cJSON_Print(cjson_cmd);
-						OneNet_Publish("100601/ssb_uuid/12333131354838a3/function/up",re_msg);
+						OneNet_Publish(topic_string,re_msg);
 						vPortFree(re_msg);
 					}
 				}
@@ -761,11 +878,12 @@ void OneNet_App(char *cmd)
 						cJSON_AddNumberToObject(cjson_params,"exec_result",re_code);
 						cJSON_ReplaceItemInObject(cjson_cmd,"type",cJSON_CreateString("reply"));
 						re_msg = cJSON_Print(cjson_cmd);
-						OneNet_Publish("100601/ssb_uuid/12333131354838a3/function/up",re_msg);
+						OneNet_Publish(topic_string,re_msg);
 						vPortFree(re_msg);
 						Device_Reboot();
 				}
 			}
+			vPortFree(topic_string);
 		}
 	}
 	cJSON_Delete(cjson_cmd);

@@ -131,16 +131,19 @@ void Dir_Light_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 	
 	//使用PA15作为普通IO口，需要禁用JTAG功能
-//  __HAL_RCC_AFIO_CLK_ENABLE();
-//	__HAL_AFIO_REMAP_SWJ_NOJTAG();
+  __HAL_RCC_AFIO_CLK_ENABLE();
+	__HAL_AFIO_REMAP_SWJ_NOJTAG();
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED2_R_GPIO_Port, LED2_R_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LED2_L_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LED2_L_GPIO_Port, LED2_L_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LED1_L_Pin|LED1_R_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LED1_R_GPIO_Port, LED1_R_Pin, GPIO_PIN_RESET);
+	
+  HAL_GPIO_WritePin(LED1_L_GPIO_Port, LED1_L_Pin, GPIO_PIN_RESET);
+
 
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = LED2_R_Pin;
@@ -154,14 +157,21 @@ void Dir_Light_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(LED2_L_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PBPin PBPin PBPin PBPin */
-  GPIO_InitStruct.Pin = LED1_L_Pin|LED1_R_Pin;
+  GPIO_InitStruct.Pin = LED1_L_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(LED1_L_GPIO_Port, &GPIO_InitStruct);
+	
+	 /*Configure GPIO pins : PBPin PBPin PBPin PBPin */
+  GPIO_InitStruct.Pin = LED1_R_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LED1_R_GPIO_Port, &GPIO_InitStruct);
 
 }
 
@@ -172,13 +182,13 @@ unsigned char Dir_Light_GPIO_Status_Get(void)
 	for(;i<4;++i)
 	 dir_light_status[i] = HAL_GPIO_ReadPin((GPIO_TypeDef *)DIR_LIGHT_PORT[i], DIR_LIGHT_PIN[i]);
 	
-	if((dir_light_status[0] == 0) &&(dir_light_status[3] == 0))
+	if((dir_light_status[0] == 0) &&(dir_light_status[1] == 0))
 		return 0;
-	else if((dir_light_status[0] == 1) &&(dir_light_status[3] == 0))
+	else if((dir_light_status[0] == 1) &&(dir_light_status[1] == 0))
 		return 1;
-	else if((dir_light_status[0] == 0) &&(dir_light_status[3] == 1))
+	else if((dir_light_status[0] == 0) &&(dir_light_status[1] == 1))
 		return 2;
-	else if((dir_light_status[0] == 1) &&(dir_light_status[3] == 1))
+	else if((dir_light_status[0] == 1) &&(dir_light_status[1] == 1))
 		return 3;
 	else
 		return 4;

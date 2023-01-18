@@ -33,12 +33,16 @@ extern "C" {
 /* USER CODE END Includes */
 
 extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN Private defines */
 #define USART_DEBUG	(&huart1)		//调试打印所使用的串口组
 /* USER CODE END Private defines */
 
 void MX_USART1_UART_Init(void);
+void MX_USART2_UART_Init(void);
+void MX_USART3_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 void Usart_SendString(UART_HandleTypeDef* uartHandle, unsigned char *str, unsigned short len);
